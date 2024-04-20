@@ -130,11 +130,11 @@ const registerUser =async(req,res)=>{
     }
 }
 const logoutUser = async (req, res) => {
-    const token = req.cookies.token_user; 
+    const token = req.cookies.access_token; 
     if (token) {
-        res.cookie('token_user','',{httpOnly:true}).json({message:"ok"});
+        res.cookie('access_token','',{httpOnly:true}).json({message:"ok"});
     }else{
-        return res.json({message:"toke is empty"});
+        return res.json({message:"access_token is empty"});
     }
 };
 module.exports={getallUsers,getUserById,deleteUserById,getAllCoiffure,getAllClient,loginUser,registerUser,logoutUser};

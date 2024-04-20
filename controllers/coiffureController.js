@@ -1,4 +1,4 @@
-import CoiffureModel from '../models/coiffureModel';
+const CoiffureModel = require('../models/coiffureModel')
 
 const getallCoiffure=async(req,res)=>{
     try{
@@ -31,7 +31,7 @@ const getCoiffureById = async (req, res) => {
     }
 }; 
 const updateCoiffure = async (req, res) => {
-    const { id } = req.params; 
+    const { id } = req.params;
     const {username,firstName,lastName,address,city,phoneNumber} =req.body;
       try {
         const updatedCoiffure = await CoiffureModel.findByIdAndUpdate(
