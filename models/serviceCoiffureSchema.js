@@ -16,7 +16,7 @@ const serviceCoiffureSchema = new Schema({
     },
     note:{
         type: String,
-        required: true,
+        required: false,
     }
 });
 const UserModel = mongoose.model('ServiceCoiffure',serviceCoiffureSchema);

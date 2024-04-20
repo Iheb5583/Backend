@@ -1,14 +1,14 @@
 const CoiffureModel = require('../models/coiffureModel')
-
+const UserModel = require('../models/userModel')
 const getallCoiffure=async(req,res)=>{
     try{
-        const userCoiffures=await User.find({role:"coiffure"});
+        const userCoiffures=await UserModel.find({role:"coiffure"});
         const AllCoiffureInfo = [];
         for (const coiffure of userCoiffures) {
           const coiffureInfo = await CoiffureModel.find({ user: coiffure._id });
           const userCoiffureInfo = {
             user: coiffure,
-            coiffureInfo: coiffureInfo[0],
+            coiffureInfo: coiffureInfo,
           };
           AllCoiffureInfo.push(userCoiffureInfo);
         }
@@ -49,4 +49,21 @@ const updateCoiffure = async (req, res) => {
       }
 }; 
 
-module.exports={getallCoiffure,getCoiffureById,updateCoiffure};
+const addServiceForCoiffure = async (req, res) => {
+    const { coiffureId } = req.params;
+    const { name, price, duration, note } = req.body;
+    try {
+        const coiffure = await CoiffureModel.findById(coiffureId);
+        if (!coiffure) {
+            return res.status(404).json({ message: 'Coiffure user with id '+coiffureId+' not found' });
+        }
+        coiffure.services.push({ name, price, duration, note });
+        await coiffure.save();
+        res.status(201).json(coiffure);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+  };
+
+module.exports={getallCoiffure,getCoiffureById,updateCoiffure,addServiceForCoiffure};

@@ -15,7 +15,24 @@ const coiffureSchema = new Schema({
     city: {type: String,required: false},
     address: {type: String,required: false},
     phoneNumber: { type: String, required: false },
-    services: [{ type: Schema.Types.ObjectId, ref: 'Service' }],
+    services: [{
+        name: {
+            type: String,
+            required: true,
+        },
+        price: {
+            type: Number,
+            required: true,
+        },
+        duration: {
+            type: Number,
+            required: true,
+        },
+        note: {
+            type: String,
+            required: true,
+        }
+    }],
 });
 const UserModel = mongoose.model('Coiffure',coiffureSchema);
 module.exports = UserModel;
