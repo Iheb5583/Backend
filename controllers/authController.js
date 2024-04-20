@@ -129,5 +129,12 @@ const registerUser =async(req,res)=>{
             }
     }
 }
-
-module.exports={getallUsers,getUserById,deleteUserById,getAllCoiffure,getAllClient,loginUser,registerUser};
+const logoutUser = async (req, res) => {
+    const token = req.cookies.token_user; 
+    if (token) {
+        res.cookie('token_user','',{httpOnly:true}).json({message:"ok"});
+    }else{
+        return res.json({message:"toke is empty"});
+    }
+};
+module.exports={getallUsers,getUserById,deleteUserById,getAllCoiffure,getAllClient,loginUser,registerUser,logoutUser};
