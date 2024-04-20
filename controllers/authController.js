@@ -3,11 +3,12 @@ const CoiffureModel=require('../models/coiffureModel');
 const clientModel=require('../models/clientModel')
 const bcrypt=require('bcrypt');
 var jwt = require('jsonwebtoken');
+const { use } = require('../routers/authRouter');
 require('dotenv').config();
 
 const getallUsers=async(req,res)=>{
     try{
-        const users=await user.find();
+        const users=await UserModel.find();
         res.json(users);
     }
     catch(err){
@@ -22,6 +23,18 @@ const getUserById = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         res.json(foundUser);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+const deleteUserById = async (req, res) => {
+    const userId = req.params.id;
+    try {
+        const deletedUser = await UserModel.findByIdAndDelete(userId);
+        if (!deletedUser) {
+            return res.status(404).json({ message: 'User with Id '+userId+' not found' });
+        }
+        res.json({ message: 'User deleted successfully', user: deletedUser });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -47,11 +60,11 @@ const getAllClient = async (req, res) => {
 
 const loginUser = async(req,res)=>{
     const {email,password}=req.body;
-    const userExist=await user.findOne({email});
+    const userExist=await UserModel.findOne({email});
    if(userExist){
         const passOk=bcrypt.compareSync(password,userExist.password);
         if(passOk){
-            const token = jwt.sign({id:userExist._id,email:userExist.email},process.env.JWT_SECRET);
+            const token = jwt.sign({id:userExist._id,email:userExist.email,role:userExist.role},process.env.JWT_SECRET);
             res.cookie('access_token',token,{httpOnly:true}).json({userExist});
         }else{
             res.status(400).json({message:"password not match"});
@@ -61,18 +74,15 @@ const loginUser = async(req,res)=>{
     }
 }
 
-const registerCoiffure =async(req,res)=>{
-    const {email,username,password,confirmPassword,role} =req.body;
-    const resultat=await user.findOne({email});
+const registerUser =async(req,res)=>{
+    const {email,password,confirmPassword,role} =req.body;
+    const resultat=await UserModel.findOne({email});
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!email){
         res.status(400).json({message:"email is empty."});
     }
     if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Email is not valid." });
-    }
-    if(!username){
-        res.status(400).json({message:"username is empty."});
     }
     else if(!password){
         res.status(400).json({message:"password is empty."});
@@ -93,9 +103,8 @@ const registerCoiffure =async(req,res)=>{
         res.status(400).json({message:"the role "+role+" is not exist."});
     }
     else{
-        const newUser=new user({
+        const newUser=new UserModel({
             email,
-            username,
             password:await bcrypt.hash(password,10),
             role
             });
@@ -113,7 +122,7 @@ const registerCoiffure =async(req,res)=>{
                 newClient.save();
             }
             try{
-                res.json(newuser);
+                res.json(newUser);
             }
             catch(err){
                 res.json({message:err});
@@ -121,4 +130,4 @@ const registerCoiffure =async(req,res)=>{
     }
 }
 
-module.exports={getallUsers,getUserById,getAllCoiffure,getAllClient,loginUser,registerCoiffure};
+module.exports={getallUsers,getUserById,deleteUserById,getAllCoiffure,getAllClient,loginUser,registerUser};

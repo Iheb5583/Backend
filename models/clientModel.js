@@ -11,7 +11,7 @@ const clientSchema = new Schema({
     dateOfBirth: {type: Date,required: false},
     city: {type: String,required: false},
     address: {type: String,required: false},
-    phoneNumber: { type: String, required: true },
+    phoneNumber: { type: String, required: false },
 });
 const UserModel = mongoose.model('Client',clientSchema);
 module.exports = UserModel;
