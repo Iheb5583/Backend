@@ -3,7 +3,6 @@ const CoiffureModel=require('../models/coiffureModel');
 const clientModel=require('../models/clientModel')
 const bcrypt=require('bcrypt');
 var jwt = require('jsonwebtoken');
-const { use } = require('../routers/authRouter');
 require('dotenv').config();
 
 const getallUsers=async(req,res)=>{
@@ -108,7 +107,6 @@ const registerUser =async(req,res)=>{
             password:await bcrypt.hash(password,10),
             role
             });
-            
             await newUser.save();
             if(role=='coiffure'){
                 const newCoiffure=new CoiffureModel({

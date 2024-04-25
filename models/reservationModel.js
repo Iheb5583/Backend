@@ -8,7 +8,7 @@ const reservationSchema = new Schema({
     date: { type: Date, required: true },
     status: {
         type: String,
-        enum: ['pending', 'confirmed','refused','cancelled by Client','Cancelled by Coiffure','done'],
+        enum: ['pending', 'confirmed','refused','cancelled_by_Client','Cancelled_by_Coiffure','done'],
         default: 'pending',
     },
 });

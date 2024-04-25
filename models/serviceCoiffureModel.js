@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const serviceCoiffureSchema = new Schema({
+const serviceCoiffureModel = new Schema({
     name: {
         type: String,
         required: true,
@@ -11,13 +11,18 @@ const serviceCoiffureSchema = new Schema({
         required: true,
     },
     duration: {
-        type: Number,
+        type: String,
         required: true,
     },
     note:{
         type: String,
         required: false,
+    },
+    coiffure: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Coiffure',
+        required: true,
     }
 });
-const UserModel = mongoose.model('ServiceCoiffure',serviceCoiffureSchema);
+const UserModel = mongoose.model('ServiceCoiffure',serviceCoiffureModel);
 module.exports = UserModel;

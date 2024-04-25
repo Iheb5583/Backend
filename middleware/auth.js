@@ -1,15 +1,15 @@
-import jwt from "jsonwebtoken";
-import User from "../models/userModel";
+const jwt=require('jsonwebtoken');
+const UserModel = require('../models/userModel.js')
 require('dotenv').config();
 
 const authAdmin = async (req,res,next)=>{
     try{
-        const token = req.cookies.token_user ;
+        const token = req.cookies.access_token;
         if(!token){
-            return res.status(401).json({error:"token not found"});
+            return res.status(401).json({error:"access_token not found"});
         }
         const decoded = jwt.verify(token,process.env.JWT_SECRET); 
-        const user = await User.findById(decoded.id);
+        const user = await UserModel.findById(decoded.id);
         if (user.role === 'admin') {
             req.user = user;
             next();
@@ -28,9 +28,8 @@ const authCoiffure = async (req, res, next) => {
         if(!token){
             return res.status(401).json({error:"access_token is not found"});
         }
-        const verified = jwt.verify(token,process.env.JWT_SECRET);
-        console.log(verified); 
-        const user = await User.findById(verified.id);
+        const decoded = jwt.verify(token,process.env.JWT_SECRET);
+        const user = await UserModel.findById(decoded.id);
         if (user.role === 'coiffure') {
             req.user = user;
             next();
@@ -45,13 +44,12 @@ const authCoiffure = async (req, res, next) => {
 
 const authClient = async (req, res, next) => {
     try{
-        const token = req.cookies.token_user ;
+        const token = req.cookies.access_token ;
         if(!token){
-            return res.status(401).json({error:"token not found"});
+            return res.status(401).json({error:"access_token not found"});
         }
-        const verified = jwt.verify(token,process.env.JWT_SECRET);
-        console.log(verified); 
-        const user = await User.findById(verified.id);
+        const decoded = jwt.verify(token,process.env.JWT_SECRET);
+        const user = await UserModel.findById(decoded.id);
         if (user.role === 'client') {
             req.user = user;
             next();

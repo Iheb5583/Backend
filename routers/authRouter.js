@@ -1,9 +1,9 @@
 const router=require('express').Router();
 const {getallUsers,getUserById,deleteUserById,getAllCoiffure,getAllClient,loginUser,registerUser,logoutUser}=require('../controllers/authController.js');
-
-router.get('', getallUsers);
-router.get('/:id',getUserById);
-router.delete('/:id', deleteUserById);
+const {authAdmin,authCoiffure,authClient} = require("../middleware/auth");
+router.get('',authAdmin, getallUsers);
+router.get('/:id',authAdmin,getUserById);
+router.delete('/:id',authAdmin, deleteUserById);
 router.get('/role/coiffures', getAllCoiffure);
 router.get('/role/clients', getAllClient);
 router.post('/login',loginUser);

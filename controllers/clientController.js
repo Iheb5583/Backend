@@ -31,7 +31,7 @@ const getClientById = async (req, res) => {
     } catch (err) {
       res.status(500).json({ message: err.message });
     }
-}; 
+};
 const updateClient = async (req, res) => {
   const { id } = req.params;
   const { username, firstName, lastName, address, city, phoneNumber } = req.body;
