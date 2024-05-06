@@ -20,6 +20,11 @@ const coiffureSchema = new Schema({
         ref: 'Service',
         required: true,
       }],
+      assessments: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Assessment',
+      required: true,
+    }],
 });
 const UserModel = mongoose.model('Coiffure',coiffureSchema);
 module.exports = UserModel;

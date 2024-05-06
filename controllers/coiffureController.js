@@ -1,6 +1,7 @@
 const CoiffureModel = require('../models/coiffureModel');
 const ServiceCoiffureModel = require('../models/serviceCoiffureModel')
-const UserModel = require('../models/userModel')
+const UserModel = require('../models/userModel');
+
 const getallCoiffure=async(req,res)=>{
     try{
         const userCoiffures=await UserModel.find({role:"coiffure"});
@@ -50,6 +51,17 @@ const updateCoiffure = async (req, res) => {
       }
 }; 
 
+const getAllServiceOfCoiffure = async (req, res) => {
+  const { coiffureId } = req.params;
+  try {
+    const services = await ServiceCoiffureModel.find({ coiffure: coiffureId });
+    res.status(200).json({ services });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
 const addServiceToCoiffure = async (req, res) => {
   const { coiffureId } = req.params;
   const { name, price, duration, note } = req.body;
@@ -90,7 +102,7 @@ const deleteServiceFromCoiffure = async (req, res) => {
 
 const udpateServiceOfCoiffure = async (req, res) => {
   const { coiffureId , serviceId } = req.params;
-  const { name, price, duration, note } = req.body;
+  const { name, price, duration, note,reduction } = req.body;
   try {
     const service = await ServiceCoiffureModel.findById(serviceId);
     if (!service) {
@@ -100,7 +112,7 @@ const udpateServiceOfCoiffure = async (req, res) => {
     }
     const updatedServiceCoiffure = await ServiceCoiffureModel.findByIdAndUpdate(
       serviceId,
-      {name, price, duration, note},
+      {name, price, duration, note,reduction},
       { new: true }
     );
     res.status(201).json({ message: 'Service Udpate successfully', updatedServiceCoiffure });
@@ -110,5 +122,4 @@ const udpateServiceOfCoiffure = async (req, res) => {
   }
 };
 
-
-module.exports={getallCoiffure,getCoiffureById,updateCoiffure,addServiceToCoiffure,deleteServiceFromCoiffure,udpateServiceOfCoiffure};
+module.exports={getallCoiffure,getCoiffureById,updateCoiffure,getAllServiceOfCoiffure,addServiceToCoiffure,deleteServiceFromCoiffure,udpateServiceOfCoiffure};

@@ -75,7 +75,7 @@ const loginUser = async(req,res)=>{
 
 const registerUser =async(req,res)=>{
     const {email,password,confirmPassword,role} =req.body;
-    const resultat=await UserModel.findOne({email});
+    const resultat=await UserModel.findOne({email:email});
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!email){
         res.status(400).json({message:"email is empty."});
@@ -97,11 +97,16 @@ const registerUser =async(req,res)=>{
     }
     else if(!role){
         res.status(400).json({message:"role is empty."});
+    }else if (role=="role"){
+        res.status(400).json({message:"You can not be admin."});
     }
-    else if(role!=="admin" && role!=="coiffure" && role!=="client"){
+    else if(role!=="coiffure" && role!=="client"){
+        console.log(role);
+        console.log("******")
         res.status(400).json({message:"the role "+role+" is not exist."});
     }
     else{
+        
         const newUser=new UserModel({
             email,
             password:await bcrypt.hash(password,10),
@@ -135,4 +140,28 @@ const logoutUser = async (req, res) => {
         return res.json({message:"access_token is empty"});
     }
 };
-module.exports={getallUsers,getUserById,deleteUserById,getAllCoiffure,getAllClient,loginUser,registerUser,logoutUser};
+
+const getProfile= async(req,res)=>{
+    console.log("zzzzzzz");
+    const token = req.cookies.access_token;
+    if (!token) {
+        return res.status(401).json({ error: "access_token is not found" });
+    }
+    try {
+        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
+        if (!decodedToken.email) {
+            return res.status(401).json({ error: "Invalid token" });
+        }
+        const auth = await UserModel.findOne({ email: decodedToken.email });
+        if (!auth) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json(auth);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
+module.exports={getallUsers,getUserById,deleteUserById,getAllCoiffure,getAllClient,loginUser,registerUser,logoutUser,getProfile};

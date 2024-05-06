@@ -11,6 +11,7 @@ const reservationSchema = new Schema({
         enum: ['pending', 'confirmed','refused','cancelled_by_Client','Cancelled_by_Coiffure','done'],
         default: 'pending',
     },
+    note : {type:String,required: true }
 });
 
 const ReservationModel = mongoose.model('Reservation', reservationSchema);

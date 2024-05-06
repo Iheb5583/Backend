@@ -1,31 +1,29 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const serviceCoiffureModel = new Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    price: {
+const assessmentModel = new Schema({
+    rating: {
         type: Number,
         required: true,
     },
-    duration: {
+    comment: {
         type: String,
         required: true,
     },
-    note:{
-        type: String,
-        required: false,
+    createdAt:{
+        type:Date,
+        default: Date.now,
     },
     coiffure: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Coiffure',
         required: true,
-    },reduction:{
-        type: Number,
-        default:0.0
+    },
+    client: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Client',
+        required: true,
     }
 });
-const UserModel = mongoose.model('ServiceCoiffure',serviceCoiffureModel);
+const UserModel = mongoose.model('Assessment',assessmentModel);
 module.exports = UserModel;

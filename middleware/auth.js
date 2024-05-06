@@ -1,5 +1,6 @@
 const jwt=require('jsonwebtoken');
-const UserModel = require('../models/userModel.js')
+const UserModel = require('../models/userModel.js');
+const CoiffureModel=require('../models/coiffureModel.js')
 require('dotenv').config();
 
 const authAdmin = async (req,res,next)=>{
@@ -24,7 +25,7 @@ const authAdmin = async (req,res,next)=>{
 
 const authCoiffure = async (req, res, next) => {
     try{
-        const token = req.cookies.access_token ;
+        const token = req.cookies.access_token;
         if(!token){
             return res.status(401).json({error:"access_token is not found"});
         }
@@ -32,7 +33,13 @@ const authCoiffure = async (req, res, next) => {
         const user = await UserModel.findById(decoded.id);
         if (user.role === 'coiffure') {
             req.user = user;
-            next();
+            const coiffuremodel = await CoiffureModel.findOne({ user: decoded.id });
+            if(req.params.coiffureId== coiffuremodel._id.toString()){
+                next();
+            }
+            else{
+                return res.status(403).json({ message: 'Yes. You are a coiffure but is not your ressources.' });
+            }
         } else {
             return res.status(403).json({ message: 'Access Denied. Only coiffure are allowed.' });
         }

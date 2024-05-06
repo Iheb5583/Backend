@@ -13,6 +13,7 @@ const clientSchema = new Schema({
     city: {type: String,required: false},
     address: {type: String,required: false},
     phoneNumber: { type: String, required: false },
+    specialNote: { type: String, required: false },
 });
 const UserModel = mongoose.model('Client',clientSchema);
 module.exports = UserModel;
