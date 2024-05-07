@@ -9,7 +9,7 @@ const userSchema =new Schema({
         type: String,
         enum: ['admin', 'coiffure', 'client'],
         default: 'client',
-        },
+      },
       password: {
         type: String,
         required: true,

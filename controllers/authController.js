@@ -1,6 +1,4 @@
-const UserModel=require('../models/userModel');
-const CoiffureModel=require('../models/coiffureModel');
-const clientModel=require('../models/clientModel')
+const sql =  require('../config/dbpg')
 const bcrypt=require('bcrypt');
 var jwt = require('jsonwebtoken');
 require('dotenv').config();
@@ -59,79 +57,84 @@ const getAllClient = async (req, res) => {
 
 const loginUser = async(req,res)=>{
     const {email,password}=req.body;
-    const userExist=await UserModel.findOne({email});
-   if(userExist){
-        const passOk=bcrypt.compareSync(password,userExist.password);
-        if(passOk){
-            const token = jwt.sign({id:userExist._id,email:userExist.email,role:userExist.role},process.env.JWT_SECRET);
-            res.cookie('access_token',token,{httpOnly:true}).json({userExist});
+    try {
+        const result = await sql`SELECT * FROM "user" WHERE email = ${email}`;
+        const userExist = result[0];
+        if(userExist){
+            const passOk=bcrypt.compareSync(password,userExist.password);
+            if(passOk){
+                const token = jwt.sign({id:userExist._id,email:userExist.email,role:userExist.role},process.env.JWT_SECRET);
+                res.cookie('access_token',token,{httpOnly:true}).json({userExist});
+            }else{
+                res.status(400).json({message:"password not match"});
+            }
         }else{
-            res.status(400).json({message:"password not match"});
+            res.status(400).json({message:"email not exist"});
         }
-    }else{
-        res.status(400).json({message:"email not exist"});
+    } catch (error) {
+        console.error('Error:', error);
+        return res.status(500).json({ message: "Internal server error" });
     }
 }
 
-const registerUser =async(req,res)=>{
-    const {email,password,confirmPassword,role} =req.body;
-    const resultat=await UserModel.findOne({email:email});
+ const registerUser = async (req, res) => {
+    const { email, password, confirmPassword, role } = req.body;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(!email){
-        res.status(400).json({message:"email is empty."});
+
+    if (!email) {
+        return res.status(400).json({ message: "Email is empty." });
     }
     if (!emailRegex.test(email)) {
         return res.status(400).json({ message: "Email is not valid." });
     }
-    else if(!password){
-        res.status(400).json({message:"password is empty."});
+    else if (!password) {
+        return res.status(400).json({ message: "Password is empty." });
     }
-    else if(!confirmPassword){
-        res.status(400).json({message:"confirm password is empty."});
+    else if (!confirmPassword) {
+        return res.status(400).json({ message: "Confirm password is empty." });
     }
-    else if(resultat){
-        res.status(400).json({message:"email already exist."});
-    }
-    else if(password!==confirmPassword){
-        res.status(400).json({message:"password not match."});
-    }
-    else if(!role){
-        res.status(400).json({message:"role is empty."});
-    }else if (role=="role"){
-        res.status(400).json({message:"You can not be admin."});
-    }
-    else if(role!=="coiffure" && role!=="client"){
-        console.log(role);
-        console.log("******")
-        res.status(400).json({message:"the role "+role+" is not exist."});
-    }
-    else{
+
+    try {
+        const result = await sql`SELECT * FROM "user" WHERE email = ${email}`;
+        if (result.length > 0) {
+            return res.status(400).json({ message: "Email already exists." });
+        }
+        if (password !== confirmPassword) {
+            await sql.query('ROLLBACK');
+            return res.status(400).json({ message: "Password does not match." });
+        }
+        if (!role) {
+            return res.status(400).json({ message: "Role is empty." });
+        }
+        else if (role == "admin") {
+            return res.status(400).json({ message: "You cannot be an admin." });
+        }
+        else if (role !== "coiffure" && role !== "client") {
+            return res.status(400).json({ message: "The role " + role + " does not exist." });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = await sql`INSERT INTO "user" (email, password, role) VALUES (${email}, ${hashedPassword}, ${role}) RETURNING * `;
         
-        const newUser=new UserModel({
-            email,
-            password:await bcrypt.hash(password,10),
-            role
-            });
-            await newUser.save();
-            if(role=='coiffure'){
-                const newCoiffure=new CoiffureModel({
-                    user: newUser._id,
-                });
-                newCoiffure.save();
-            }else{
-                const newClient=new clientModel({
-                    user: newUser._id,
-                });
-                newClient.save();
-            }
-            try{
-                res.json(newUser);
-            }
-            catch(err){
-                res.json({message:err});
-            }
+        const newRecordUser = await sql`SELECT * FROM "user" WHERE email = ${email}`;
+        if (newUser.length === 0) {
+            throw new Error("Failed to retrieve newly inserted user.");
+        }
+        const IdnewRecordUser = newRecordUser[0].id;
+        console.log(IdnewRecordUser);
+        if (role == 'coiffure') {
+            console.log(IdnewRecordUser+"coi");
+            await sql`INSERT INTO "coiffure" (user_id) VALUES (${IdnewRecordUser})`;
+        } else if (role == 'client'){
+            console.log(IdnewRecordUser+"cli");
+            await sql`INSERT INTO "client" (user_id) VALUES (${IdnewRecordUser})`;
+        }
+        res.json(newRecordUser);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal server error." });
     }
-}
+};
 const logoutUser = async (req, res) => {
     const token = req.cookies.access_token; 
     if (token) {
@@ -142,7 +145,6 @@ const logoutUser = async (req, res) => {
 };
 
 const getProfile= async(req,res)=>{
-    console.log("zzzzzzz");
     const token = req.cookies.access_token;
     if (!token) {
         return res.status(401).json({ error: "access_token is not found" });
@@ -152,11 +154,11 @@ const getProfile= async(req,res)=>{
         if (!decodedToken.email) {
             return res.status(401).json({ error: "Invalid token" });
         }
-        const auth = await UserModel.findOne({ email: decodedToken.email });
-        if (!auth) {
+        const result = await sql`SELECT * FROM "user" WHERE email = ${decodedToken.email}`;
+        const user = result[0];
+        if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-
         res.json(auth);
     } catch (err) {
         console.error(err);
