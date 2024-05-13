@@ -159,8 +159,15 @@ const getProfile= async(req,res)=>{
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        console.log(user);
-        res.json(user);
+        let profileInfo = {};
+        if (user.role === 'client') {
+            const clientResult = await sql`SELECT * FROM "client" WHERE user_id = ${user.id}`;
+            profileInfo = { ...user, ...clientResult[0] };
+        } else if (user.role === 'coiffure') {
+            const coiffureResult = await sql`SELECT * FROM "coiffure" WHERE user_id = ${user.id}`;
+            profileInfo = { ...user, ...coiffureResult[0] };
+        }
+        res.json(profileInfo);
     } catch (err) {
         console.error(err);
         return res.status(500).json({ error: "Internal Server Error" });

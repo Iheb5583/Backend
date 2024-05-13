@@ -1,24 +1,26 @@
-const CoiffureModel = require('../models/coiffureModel');
+const sql =  require('../config/dbpg');
 const ServiceCoiffureModel = require('../models/serviceCoiffureModel')
 const UserModel = require('../models/userModel');
 
 const getallCoiffure=async(req,res)=>{
-    try{
-        const userCoiffures=await UserModel.find({role:"coiffure"});
-        const AllCoiffureInfo = [];
-        for (const coiffure of userCoiffures) {
-          const coiffureInfo = await CoiffureModel.find({ user: coiffure._id });
-          const userCoiffureInfo = {
-            user: coiffure,
-            coiffureInfo: coiffureInfo,
-          };
-          AllCoiffureInfo.push(userCoiffureInfo);
-        }
-        res.json({"coiffures":AllCoiffureInfo});
-    }
-    catch(err){
-        res.json({message:err});
-    }
+  try {
+      const result = await sql`SELECT * FROM "coiffure"`;
+      if (result) {
+        const coiffures = result.map(coiffure => ({
+          id: coiffure.id,
+          namcoiffure: coiffure.namcoiffure,
+          city: coiffure.city,
+          address: coiffure.address,
+          phoneNumber: coiffure.phoneNumber,
+        }));
+        console.log(coiffures);
+        res.json({ coiffures });
+      }
+  } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ message: "Internal server error" });
+  }
+  
 }
 const getCoiffureById = async (req, res) => {
     const coiffureId = req.params.id; 
